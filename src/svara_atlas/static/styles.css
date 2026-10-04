@@ -158,6 +158,31 @@ h2 {
   padding: 8px 12px;
 }
 
+.discover-copy {
+  font-size: 13px;
+  margin-bottom: 17px;
+}
+
+#discover-button {
+  width: 100%;
+}
+
+.manual-import {
+  margin-top: 13px;
+  padding: 15px 18px;
+}
+
+.manual-import summary {
+  color: #62645a;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.manual-import[open] summary {
+  margin-bottom: 15px;
+}
+
 #import-form,
 .category-form {
   display: flex;
@@ -271,9 +296,24 @@ input::placeholder {
   padding: 17px;
 }
 
+.category-tools summary {
+  color: #62645a;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.category-tools[open] summary {
+  margin-bottom: 13px;
+}
+
 .category-form input {
   flex: 1;
   padding: 0 12px;
+}
+
+.language-hint {
+  margin-bottom: 3px;
 }
 
 .library-meta {
@@ -321,6 +361,34 @@ input::placeholder {
 
 .song-list {
   display: grid;
+  gap: 20px;
+}
+
+.language-group-heading {
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 1px 8px;
+}
+
+.language-group-heading h3 {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.language-group-heading span {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.song-list-group {
+  display: grid;
   gap: 8px;
 }
 
@@ -331,7 +399,7 @@ input::placeholder {
   border-radius: 6px;
   display: grid;
   gap: 13px;
-  grid-template-columns: minmax(0, 1fr) minmax(145px, 190px) 35px;
+  grid-template-columns: minmax(0, 1fr) minmax(125px, 175px) 35px;
   padding: 11px 12px 11px 15px;
 }
 

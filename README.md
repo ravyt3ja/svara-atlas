@@ -22,8 +22,9 @@ The long-term idea is to bring together several kinds of evidence:
   provider the canonical catalogue.
 
 The project starts with domain models and clear seams between sources, analysis,
-and future clustering strategies. It does not yet fetch tracks, analyze audio,
-or make similarity claims. Those choices should be tested against real,
+and future clustering strategies. It does not yet download or analyze audio, or
+make similarity claims. Its YouTube connector fetches public catalogue metadata
+only. Similarity choices should be tested against real,
 appropriately licensed examples rather than hidden behind arbitrary thresholds.
 
 ## Design principles
@@ -77,13 +78,18 @@ For a development install:
 python -m pip install -e ".[dev]"
 ```
 
-## Organize songs from YouTube
+## Automatically build popular-song lists
 
-SvaraAtlas includes a local browser app for importing public YouTube or
-YouTube Music playlists, assigning songs to your own categories, and exporting
-the categorized library as CSV. Song titles, channel names, categories, and
-playlist membership are saved in your browser's local storage; the app does
-not download audio or change playlists on YouTube.
+The local browser app can generate estimated lists for Telugu, Tamil, Hindi,
+and English. It searches YouTube's Music video category ordered by view count,
+fetches public video metadata, and groups results by the language search.
+It can return up to 100 results per language, but may return fewer after
+excluding entries whose metadata contains film-related markers. Results are
+video-based estimates, not official or definitive song charts; language
+relevance is not verified, and duplicates, covers, or unrelated videos may
+remain. The metadata marker filter cannot reliably detect every film song.
+YouTube does not provide an original film release year in these search
+results, so upload dates are not treated as song or film release dates.
 
 1. In Google Cloud Console, create an API key and enable **YouTube Data API v3**
    for its project. Restrict the key to that API.
@@ -94,14 +100,18 @@ not download audio or change playlists on YouTube.
    YOUTUBE_API_KEY="your-api-key" svara-atlas-web
    ```
 
-3. Open <http://127.0.0.1:8000>, paste a public playlist link, and import it.
-   Add your categories, choose one for each song, then select **Export CSV**.
+3. Open <http://127.0.0.1:8000> and click **Generate my lists**. The app
+   automatically groups results into language lists. Select **Export CSV** to
+   download them.
 
 The API key is read only by the local server and is never sent to the browser.
 Keep it private and do not commit it. Private playlists and account sign-in
 aren't supported. By default, the server listens only on your own computer;
 do not expose it to the public internet without adding authentication and
 appropriate production hosting.
+
+Results and categories are saved in this browser's local storage. The optional
+playlist import is still available below the automatic discovery section.
 
 ## TypeSafe and semantic analysis
 

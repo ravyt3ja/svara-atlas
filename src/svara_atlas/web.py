@@ -7,7 +7,11 @@ from pathlib import Path
 from typing import Any, Dict, List
 from urllib.parse import parse_qs, urlparse
 
-from svara_atlas.connectors.youtube import YouTubeAPIError, fetch_public_playlist
+from svara_atlas.connectors.youtube import (
+    YouTubeAPIError,
+    discover_popular_songs,
+    fetch_public_playlist,
+)
 
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -25,6 +29,9 @@ class SvaraAtlasHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path == "/api/discover":
+            self._handle_discovery_request()
+            return
         if parsed.path == "/api/playlist":
             self._handle_playlist_request(parse_qs(parsed.query))
             return
@@ -59,6 +66,19 @@ class SvaraAtlasHandler(BaseHTTPRequestHandler):
             return
         except YouTubeAPIError as error:
             status = 503 if not os.environ.get("YOUTUBE_API_KEY", "").strip() else 502
+            self._send_json({"error": str(error)}, status=status)
+            return
+        self._send_json(result)
+
+    def _handle_discovery_request(self) -> None:
+        api_key = os.environ.get("YOUTUBE_API_KEY", "")
+        try:
+            result = discover_popular_songs(api_key)
+        except ValueError as error:
+            self._send_json({"error": str(error)}, status=400)
+            return
+        except YouTubeAPIError as error:
+            status = 503 if not api_key.strip() else 502
             self._send_json({"error": str(error)}, status=status)
             return
         self._send_json(result)

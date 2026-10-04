@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from svara_atlas.connectors.youtube import (
     YouTubeAPIError,
+    discover_popular_songs,
     extract_playlist_id,
     fetch_public_playlist,
 )
@@ -20,6 +21,7 @@ class FakeResponse:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        del exc_type, exc_value, traceback
         return False
 
     def read(self):
@@ -122,6 +124,110 @@ class YouTubeConnectorTests(unittest.TestCase):
                 fetch_public_playlist(
                     "https://www.youtube.com/playlist?list=PL_test", "test-key"
                 )
+
+    def test_discovers_view_ranked_candidates_and_excludes_film_results(self):
+        titles_by_query = {
+            "Telugu songs": [
+                ("te-popular", "Telugu independent song"),
+                ("te-less-popular", "Telugu folk song"),
+                ("te-film", "Telugu film soundtrack"),
+            ],
+            "Tamil songs": [("ta-popular", "Tamil folk song")],
+            "Hindi songs": [("hi-popular", "Hindi devotional song")],
+            "English songs": [("en-popular", "English indie song")],
+        }
+        view_counts = {
+            "te-popular": 1200,
+            "te-less-popular": 800,
+            "te-film": 9000,
+            "ta-popular": 2200,
+            "hi-popular": 3200,
+            "en-popular": 4200,
+        }
+
+        title_by_id = {
+            video_id: title
+            for videos in titles_by_query.values()
+            for video_id, title in videos
+        }
+
+        def response_for(url, timeout):
+            del timeout
+            parsed = urlparse(url)
+            params = parse_qs(parsed.query)
+            if parsed.path.endswith("/search"):
+                query = params["q"][0]
+                videos = titles_by_query[query]
+                payload = {}
+                if query == "Telugu songs":
+                    if "pageToken" not in params:
+                        videos = videos[:1]
+                        payload["nextPageToken"] = "next-search-page"
+                    else:
+                        videos = videos[1:]
+                payload["items"] = [
+                    {
+                        "id": {"videoId": video_id},
+                        "snippet": {
+                            "title": title,
+                            "channelTitle": "Music channel",
+                        },
+                    }
+                    for video_id, title in videos
+                ]
+                return FakeResponse(payload)
+            ids = params["id"][0].split(",")
+            return FakeResponse(
+                {
+                    "items": [
+                        {
+                            "id": video_id,
+                            "snippet": {
+                                "title": title_by_id[video_id],
+                                "channelTitle": "Music channel",
+                            },
+                            "statistics": {"viewCount": str(view_counts[video_id])},
+                        }
+                        for video_id in ids
+                    ]
+                }
+            )
+
+        with patch(
+            "svara_atlas.connectors.youtube.urlopen", side_effect=response_for
+        ) as mocked_urlopen:
+            result = discover_popular_songs(
+                "test-key", limit_per_language=2, max_search_pages=2
+            )
+
+        self.assertEqual(
+            result["languages"], ["Telugu", "Tamil", "Hindi", "English"]
+        )
+        self.assertEqual(
+            [track["videoId"] for track in result["songsByLanguage"]["Telugu"]],
+            ["te-popular", "te-less-popular"],
+        )
+        self.assertEqual(
+            result["songsByLanguage"]["Telugu"][0]["viewCount"], 1200
+        )
+        self.assertEqual(mocked_urlopen.call_count, 10)
+        search_params = parse_qs(
+            urlparse(mocked_urlopen.call_args_list[0][0][0]).query
+        )
+        self.assertEqual(search_params["order"], ["viewCount"])
+        self.assertEqual(search_params["relevanceLanguage"], ["te"])
+        next_page_params = parse_qs(
+            urlparse(mocked_urlopen.call_args_list[2][0][0]).query
+        )
+        self.assertEqual(next_page_params["pageToken"], ["next-search-page"])
+        self.assertIn("estimates", result["ranking"])
+        self.assertIn("release years", result["filmPolicy"])
+
+    def test_discovery_requires_api_key_and_valid_limit(self):
+        with self.assertRaisesRegex(YouTubeAPIError, "YOUTUBE_API_KEY"):
+            discover_popular_songs("")
+        with self.assertRaisesRegex(ValueError, "limit"):
+            discover_popular_songs("test-key", limit_per_language=101)
 
 
 if __name__ == "__main__":
