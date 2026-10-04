@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3f0e9">
+    <title>SvaraAtlas — Song organizer</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="SvaraAtlas home">
+          <span class="brand-mark" aria-hidden="true">S</span>
+          <span>SvaraAtlas</span>
+        </a>
+        <span class="privacy-note">Your categories stay in this browser</span>
+      </header>
+
+      <section class="intro">
+        <p class="eyebrow">YOUR LISTENING, YOUR WAY</p>
+        <h1>Put every song<br>in its <em>own place.</em></h1>
+        <p class="intro-copy">
+          Bring in a public YouTube playlist, make categories that mean
+          something to you, and sort your songs into personal lists.
+        </p>
+      </section>
+
+      <section class="import-card" aria-labelledby="import-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">01 / BRING YOUR SONGS</p>
+            <h2 id="import-heading">Import a playlist</h2>
+          </div>
+          <span class="source-pill">YouTube · YouTube Music</span>
+        </div>
+        <form id="import-form">
+          <label class="visually-hidden" for="playlist-url">Playlist URL</label>
+          <input
+            id="playlist-url"
+            name="playlist-url"
+            type="url"
+            placeholder="Paste a public YouTube playlist link"
+            autocomplete="url"
+            required
+          >
+          <button class="button button-dark" id="import-button" type="submit">
+            Import songs <span aria-hidden="true">↗</span>
+          </button>
+        </form>
+        <p class="hint">Public playlists only. Imports song titles and channel names, not audio.</p>
+        <p class="status" id="import-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="organizer" aria-labelledby="organizer-heading">
+        <div class="section-heading organizer-heading">
+          <div>
+            <p class="eyebrow">02 / MAKE IT YOURS</p>
+            <h2 id="organizer-heading">Your song library</h2>
+          </div>
+          <div class="library-actions">
+            <button class="button button-light" id="export-button" type="button">
+              Export CSV <span aria-hidden="true">↓</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="category-tools">
+          <form id="category-form" class="category-form">
+            <label class="visually-hidden" for="category-name">New category name</label>
+            <input id="category-name" name="category-name" type="text" maxlength="40"
+              placeholder="e.g. Rainy day, Tamil classics">
+            <button class="button button-accent" type="submit">+ Add category</button>
+          </form>
+          <p class="hint">Create your own categories, then choose one beside each song.</p>
+        </div>
+
+        <div class="library-meta">
+          <span id="song-count">0 songs</span>
+          <span id="category-count">1 category</span>
+        </div>
+        <div class="empty-state" id="empty-state">
+          <span class="empty-note" aria-hidden="true">♫</span>
+          <h3>Your next favorite list starts here.</h3>
+          <p>Import a playlist above to begin sorting songs.</p>
+        </div>
+        <div class="song-list" id="song-list" aria-live="polite"></div>
+      </section>
+
+      <footer>
+        <span>Made for the music that moves you.</span>
+        <span>Song information is fetched from the YouTube Data API.</span>
+      </footer>
+    </main>
+  </body>
+</html>
